@@ -57,40 +57,27 @@ class Core:
                 "denoise": ("FLOAT", {
                     "default": 0.5,
                     "min": 0.0,
-                    "max": 1.0
+                    "max": 1.0,
+                    "step": 0.01
                 }),
 
                 "select_model": ("STRING", {
                     "default": ""
                 }),
 
-                "sampler_name": ("STRING", {
-                    "default": "k_lms",
-                    "multiline": False
-                }),
-
-                "scheduler": ("STRING", {
-                    "default": "normal",
-                    "multiline": False
-                }),
-
                 "audio_path": ("STRING", {
                     "default": "",
                     "multiline": False
-                }),
-
-                "vae_model": ("STRING", {
-                    "default": ""
                 })
             },
         }
     
     RETURN_TYPES = ("STRING", "INT", "STRING", "STRING",
                    "INT", "FLOAT", "INT", "FLOAT",
-                   any, "STRING", "STRING", any, "STRING")
+                   any, "STRING")
     RETURN_NAMES = ("render_output_path", "frame_rate", "positive_prompt", "negative_prompt",
                    "steps", "cfg", "seed", "denoise",
-                   "select_model", "audio_path", "sampler_name", "vae_model", "scheduler")
+                   "select_model", "audio_path")
     FUNCTION = "process"
     CATEGORY = "Reallusion"
     
@@ -105,8 +92,7 @@ class Core:
     def process(self, render_output_path: str, input_type: str, output_type: str, frame_rate: int,
                positive_prompt: str, negative_prompt: str,
                steps: int, cfg: float, seed: int, denoise: float,
-               select_model: str, sampler_name: str, scheduler: str,
-               audio_path: str, vae_model: str):
+               select_model: str, audio_path: str):
         """
         處理 Reallusion 相關圖片檔案
         """
@@ -116,81 +102,22 @@ class Core:
             # 處理音訊檔案路徑
             audio_full_path = os.path.join(folder_paths.input_directory, audio_path)
             
-            print(f"Input image path: {full_path}")
-            print(f"Input audio path: {audio_full_path}")
-            print(f"Sampler name: {sampler_name}")
-            print(f"Denoise: {denoise}")
-
-            print(folder_paths.input_directory)
             # 檢查必要檔案是否存在
             if not os.path.exists(full_path):
-                raise FileNotFoundError(f"找不到輸入檔案: {full_path}")
+                raise FileNotFoundError(f"cannot find input file: {full_path}")
             
             SELECT_MODELS = list()
             if select_model != "":
                 values = select_model.split(',')
                 SELECT_MODELS = values[0]
 
-            VAE_MODELS = list()
-            if vae_model != "":
-                values = vae_model.split(',')
-                VAE_MODELS = values[0]
-
             return (full_path, frame_rate, positive_prompt, negative_prompt,
                    steps, cfg, seed, denoise,
-                   SELECT_MODELS, audio_full_path, sampler_name, VAE_MODELS, scheduler)
+                   SELECT_MODELS, audio_full_path)
             
         except Exception as e:
-            print(f"處理過程中發生錯誤: {str(e)}")
+            print(f"process error: {str(e)}")
             raise e
-
-class WorkflowInfo:
-    """
-    Reallusion Workflow Info 節點，用於提供工作流程的相關資訊
-    """
-
-    @classmethod
-    def INPUT_TYPES(cls) -> Dict[str, Any]:
-        return {
-            "required": {
-                "name": ("STRING", {
-                    "default": "Image To Image",
-                    "multiline": False
-                }),
-                "creator": ("STRING", {
-                    "default": "Reallusion",
-                    "multiline": False
-                }),
-                "tags": ("STRING", {
-                    "default": "Image",
-                    "multiline": False
-                }),
-                "special_tag": ("STRING", {
-                    "default": "Image Workflow",
-                    "multiline": False
-                })
-            }
-        }
-
-    RETURN_TYPES = ()  # 空元組，表示沒有輸出
-    RETURN_NAMES = ()  # 空元組，表示沒有輸出名稱
-    FUNCTION = "process"
-    CATEGORY = "Reallusion"
-
-    def process(self, name: str, creator: str, tags: str, special_tag: str) -> tuple:
-        """
-        處理工作流程資訊
-
-        Args:
-            name (str): 工作流程名稱
-            creator (str): 創建者
-            tags (str): 標籤（逗號分隔的字串）
-            special_tag (str): 特殊標籤
-
-        Returns:
-            tuple: 空元組，因為這個節點不需要輸出
-        """
-        return ()
 
 class ControlNet:
     """
@@ -249,7 +176,7 @@ class ControlNet:
         input_path = os.path.join(folder_paths.input_directory, control_net_path)
 
         if control_net_strength > 0 and not os.path.exists(input_path):
-            raise FileNotFoundError(f"找不到 Normal 輸入檔案: {input_path}")
+            raise FileNotFoundError(f"cannot find normal input file: {input_path}")
 
         return (
             input_path, control_net_state, control_net_strength,
@@ -311,11 +238,11 @@ class AdditionalImage:
             full_path = os.path.join(folder_paths.input_directory, image_path)
             
             if not os.path.exists(full_path):
-                raise FileNotFoundError(f"找不到輸入檔案: {full_path}")
+                raise FileNotFoundError(f"cannot find input file: {full_path}")
             
             # 驗證 weight_type 是否為有效的 WEIGHT_TYPES 值
             if weight_type not in self.WEIGHT_TYPES:
-                raise ValueError(f"無效的 weight_type: {weight_type}. 必須是以下其中之一: {', '.join(self.WEIGHT_TYPES)}")
+                raise ValueError(f"invalid weight_type: {weight_type}. must be one of: {', '.join(self.WEIGHT_TYPES)}")
             
             if not active:
                 # 如果沒啟用，回傳空路徑、預設 weight_type、權重 0
@@ -324,7 +251,7 @@ class AdditionalImage:
             return (full_path, weight_type, weight)
             
         except Exception as e:
-            print(f"處理過程中發生錯誤: {str(e)}")
+            print(f"process error: {str(e)}")
             raise e
 
 class UpscaleData:
