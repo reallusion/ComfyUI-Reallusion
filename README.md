@@ -30,7 +30,7 @@ Upscale Data Node
 
 ## Installation
 
-Download or git clone this repository inside ComfyUI/custom_nodes/ directory  (usually ComfyUI/custom_nodes/).
+Download or git clone this repository inside ComfyUI/custom_nodes/ directory.
 
 
 Launch ComfyUI; the nodes will appear under the category Reallusion.
