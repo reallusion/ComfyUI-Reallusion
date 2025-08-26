@@ -21,8 +21,8 @@ class Core:
                     "default": "", 
                     "multiline": False
                 }),
-                "input_type": (["video", "image"],),
-                "output_type": (["video", "image"],),
+                "input_type": (["image", "video"],),
+                "output_type": (["image", "video"],),
                 "frame_rate": ("INT", {
                     "default": 12,
                     "min": 1,
@@ -137,17 +137,20 @@ class ControlNet:
                 "control_net_strength": ("FLOAT", {
                     "default": 0.0,
                     "min": 0.0,
-                    "max": 1.0
+                    "max": 1.0,
+                    "step": 0.01
                 }),
                 "control_net_start_percent": ("FLOAT", {
                     "default": 0,
-                    "min": 0,
-                    "max": 1000000
+                    "min": 0.0,
+                    "max": 1.0,
+                    "step": 0.01
                 }),
                 "control_net_end_percent": ("FLOAT", {
-                    "default": 0,
+                    "default": 1.0,
                     "min": 0,
-                    "max": 1000000
+                    "max": 1.0,
+                    "step": 0.01
                 }),
             }
         }
